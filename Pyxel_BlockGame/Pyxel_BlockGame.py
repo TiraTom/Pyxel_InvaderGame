@@ -12,6 +12,7 @@ class Direction(IntEnum):
     Up = auto()
     Down = auto()
     Right = auto()
+    Center = auto()
     Left = auto()
 
 
@@ -21,11 +22,25 @@ class Ball:
         self.x = 60
         self.y = 110
         self.r = 2
-        self.direction = Direction.Down
+        self.direction_x = Direction.Center
+        self.direction_y = Direction.Down
         self.center = (self.x + self.r) / 2
 
     def draw(self):
         pyxel.circ(self.x, self.y, self.r, 8)
+
+    def update(self):
+        if self.direction_y == Direction.Up:
+            self.y = self.y - 1
+
+        if self.direction_y == Direction.Down:
+            self.y = self.y + 1
+
+        if self.direction_x == Direction.Right:
+            self.x = self.x + 1
+
+        if self.direction_x == Direction.Left:
+            self.x = self.x - 1
 
 
 
@@ -81,36 +96,25 @@ class App:
         pyxel.run(self.update, self.draw)
 
 
-    def move_direction_check(self, ball, wall, block):
+    def ball_direction_update(self, ball, wall, block):
         # ブロックとの衝突判定
 
 
-        # wallとの衝突判定
+        # y軸方向の処理
         if wall.x <= ball.x and ball.x <= (wall.x + wall.width) and ball.y + 1 == wall.y:
-            ball.direction = Direction.Up
+            ball.direction_y = Direction.Up
 
-        # y軸方向についての処理
         if ball.y - 1 == 0:
-            ball.direction = Direction.Down
+            ball.direction_y = Direction.Down
 
-        if ball.direction == Direction.Down:
-            ball.y = ball.y + 1
-
-        if ball.direction == Direction.Up:
-            ball.y = ball.y - 1
-
+        # x軸方向の処理
         if ball.x + 1 == WINDOW_WIDTH:
-            ball.direction = Direction.Left
+            ball.direction_x = Direction.Left
 
         if ball.x - 1 == 0:
-            ball.direction = Direction.Right
+            ball.direction_x = Direction.Right
 
 
-        if ball.direction == Direction.Right:
-            ball.x = ball.x + 1
-
-        if ball.direction == Direction.Left:
-            ball.x = ball.x - 1
 
 
 
@@ -124,7 +128,9 @@ class App:
         if pyxel.btn(pyxel.KEY_RIGHT):
             self.wall.move_right()
 
-        self.move_direction_check(self.ball, self.wall, self.block)
+        self.ball_direction_update(self.ball, self.wall, self.block)
+
+        self.ball.update()
 
 
 
