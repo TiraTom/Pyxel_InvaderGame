@@ -1,6 +1,8 @@
 import os
 import pyxel
 import random
+import sys
+from msvcrt import getch
 from enum import IntEnum, auto
 
 WINDOW_HEIGHT = 160
@@ -133,13 +135,21 @@ class App:
         self.wall.draw()
         self.block.draw()
 
-        if self.ball.y >= WINDOW_HEIGHT:
+        if self.ball.y - 2 > WINDOW_HEIGHT:
             pyxel.text(60, 110, "You Failed", 5)
 
-
-App()
-
-
+            #if ord(getch()) == 13:
+            #    pyxel.quit()
 
 
+print(" Start New Game : Press Enter Key")
+print(" Quit Game : Press Q Key")
 
+if ord(getch()) == 13:
+    App()
+
+while True:
+    if ord(getch()) == 113:
+        break
+
+    App()
