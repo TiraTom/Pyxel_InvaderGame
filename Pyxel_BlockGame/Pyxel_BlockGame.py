@@ -8,19 +8,21 @@ from enum import IntEnum, auto
 WINDOW_HEIGHT = 160
 WINDOW_WIDTH = 120
 FIGHTER_Y = 145
-FIGHTER_WIDTH = 7
-FIGHTER_HEIGHT = 4
-FIGHTER_DATA_POSITION = ()
-ENEMY_HEIGHT = 4
-ENEMY_WIDTH = 4
-ENEMY_DATA_POSITION = ()
+FIGHTER_WIDTH = 6
+FIGHTER_HEIGHT = 7
+FIGHTER_DATA_POSITION = (0, 0)
+ENEMY_HEIGHT = 6
+ENEMY_WIDTH = 6
+ENEMY_DATA1_POSITION = (8, 0)
+ENEMY_DATA2_POSITION = (0, 8)
+ENEMY_DATA3_POSITION = (9, 9)
+SHOT_POSITION = (16, 0)
+SHOT_HEIGHT = 7
+SHOT_WIDTH = 7
 
-class Direction(IntEnum):
-    Up = auto()
-    Down = auto()
-    Right = auto()
-    Center = auto()
-    Left = auto()
+class Status(IntEnum):
+    Valid = auto()
+    Invalid = auto()
 
 class Level(IntEnum):
     Weak = auto()
@@ -67,7 +69,15 @@ class EnemyShot(Shot):
         super().update()
 
 
+class ShotList():
+    def __init__(self):
+        a = True
 
+    def update(self):
+        b = True
+
+    def draw(self):
+        c = True
 
 
 
@@ -78,7 +88,7 @@ class Fighter:
         self.x = WINDOW_WIDTH / 2 + FIGHTER_WIDTH / 2
         self.y = FIGHTER_Y
         self.shot_x = self.x + FIGHTER_WIDTH / 2
-        self.alive = True
+        self.status = Status.Valid
 
     def draw(self):
         pyxel.blt(self.x, self.y, 1, 0, 0, FIGHTER_WIDTH, FIGHTER_HEIGHT, 13)
@@ -102,10 +112,8 @@ class Fighter:
 
 class Enemy:
     def __init__(self, x, y, level):
-        self.x
-        self.y
-        self.color
-        self.hp
+        self.x = x
+        self.y = y
         self.status = Status.Valid
 
         if level == Level.Weak:
@@ -124,9 +132,19 @@ class Enemy:
         if self.hp == 0:
             self.status = Status.Invalid
 
+    def update(self):
+        if pyxel.frame_count % 20 == 0:
+            self.x = self.x + 3 
+        elif pyxel.frame_count % 20 == 5:
+            self.x = self.x - 3
+        elif pyxel.frame_count % 20 == 10:
+            self.x = self.x - 3
+        elif pyxel.frame_count % 20 == 15:
+            self.x = self.x + 3
 
 
-class Enemies:
+
+class EnemyList:
 
     def __init__(self):
 
@@ -134,34 +152,42 @@ class Enemies:
         self.raw2 = [Enemy(5 + (ENEMY_WIDTH + 3) * i, 5 + ENEMY_HEIGHT + 3, 2) for i in range(4)]
         self.raw3 = [Enemy(5 + (ENEMY_WIDTH + 3) * i,  5 + (ENEMY_HEIGHT + 3) * 2 , 1) for i in range(4)]
 
-        self.enemy_group = raw1 + raw2 + raw3
+        self.enemy_group = self.raw1 + self.raw2 + self.raw3
 
     def draw(self):
-        [pyxel.blt(enemy.x, enemy_y, ) for enemy in self.enemy_group]
-        [pyxel.rect(block[0], block[1], block[0] + block[2], block[1] + block[3], block[4]) for block in self.blocks]
+        b = 1
+        #[pyxel.blt(enemy.x, enemy_y, ) for enemy in self.enemy_group]
+        #[pyxel.rect(block[0], block[1], block[0] + block[2], block[1] + block[3], block[4]) for block in self.blocks]
 
+    def update(self):
+        a = 1
 
 
 class App:
     def __init__(self):
         pyxel.init(WINDOW_WIDTH, WINDOW_HEIGHT, caption="InvaderGame")
 
-        pyxel.load(f'{os.path.dirname(__file__)}/assets/invade_game.pyxel')
+        pyxel.load(f'{os.getcwd()}/resource_file.pyxel')
 
         self.fighter = Fighter()
-        self.enemy = Enemy()
+        self.enemy_list = EnemyList()
+        self.shot_list = ShotList()
 
         pyxel.run(self.update, self.draw)
 
 
-    def enemy_hit_check(self, enemy, shots):
+    def enemy_hit_check(self, fighter, senemy_list, shot_list):
         # 撃墜判定
+        if 1 == 1:
+            fighter.stauts = Status.Invalid
+        else:
+            fighter.stauts = Status.Valid
 
 
 
     def update(self):
         if pyxel.btnp(pyxel.KEY_SPACE):
-            self.shots.append(Shot(self.fighter.x))
+            self.shot_list.append(Shot(self.fighter.x))
 
         if pyxel.btnp(pyxel.KEY_Q):
             pyxel.quit()
@@ -172,20 +198,21 @@ class App:
         if pyxel.btn(pyxel.KEY_RIGHT):
             self.fighter.move_right()
 
-        self.enemy_hit_check(self.enemy, self.shots)
+        self.enemy_hit_check(self.fighter, self.enemy_list, self.shot_list)
 
-        self.ball.update()
+        self.enemy_list.update()
+        self.shot_list.update()
 
 
 
     def draw(self):
         pyxel.cls(0)
 
-        self.ball.draw()
-        self.wall.draw()
-        self.block.draw()
+        self.fighter.draw()
+        self.enemy_list.draw()
+        self.shot_list.draw()
 
-        if self.fighter.alive == False:
+        if self.fighter.status == False:
             pyxel.text(WINDOW_WIDTH / 2 + FIGHTER_WIDTH / 2, WINDOW_HEIGHT / 3 * 2, "You Failed", 5)
 
             #if ord(getch()) == 13:
