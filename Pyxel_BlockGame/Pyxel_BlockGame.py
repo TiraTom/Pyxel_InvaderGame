@@ -10,6 +10,10 @@ WINDOW_WIDTH = 120
 FIGHTER_Y = 145
 FIGHTER_WIDTH = 7
 FIGHTER_HEIGHT = 4
+FIGHTER_DATA_POSITION = ()
+ENEMY_HEIGHT = 4
+ENEMY_WIDTH = 4
+ENEMY_DATA_POSITION = ()
 
 class Direction(IntEnum):
     Up = auto()
@@ -18,26 +22,53 @@ class Direction(IntEnum):
     Center = auto()
     Left = auto()
 
+class Level(IntEnum):
+    Weak = auto()
+    Normal = auto()
+    Strong = auto()
 
 class Shot():
 
     def __init__(self, position_x):
         self.x = position_x
-        self.y = FIGHTER_Y
-        self.color = 8
-        self.alive = True
+        self.status = Status.Valid
+        self.color
 
     def draw(self):
         pyxel.pix(self.x, self.y, self.color)
 
-    def update(self, enemy):
-        self.y = self.y + 1
-
-        if self.y == 0:
-            self.alive = False
+    def update(self):
+        if self.y == 0 or self.y == WINDOW_HEIGHT: 
+            self.status = Status.Invalid
 
         if self.alive:
             self.draw()
+
+class FighterShot(Shot):
+    def __init__(self, position_x):
+        super().__init__(position_x)
+        self.y = FIGHTER_Y
+        self.color = 8
+
+    def update(self):
+        self.y = self.y - 1
+        super().update()
+
+
+
+class EnemyShot(Shot):
+    def __init__(self, position_x, position_y):
+        super().__init__(position_x)
+        self.y =  position_y
+        self.color = 4
+
+    def update(self):
+        self.y = self.y + 1
+        super().update()
+
+
+
+
 
 
 
@@ -69,27 +100,44 @@ class Fighter:
 
 
 
-class EnemyInfo:
-    __init__(self):
+class Enemy:
+    def __init__(self, x, y, level):
         self.x
         self.y
         self.color
         self.hp
+        self.status = Status.Valid
+
+        if level == Level.Weak:
+            self.color = 9
+            self.hp = 1
+        if level == Level.Normal:
+            self.color = 11
+            self.hp = 2
+        if level == Level.Strong:
+            self.color = 14
+            self.hp = 3
+
+    def hit(self):
+        self.hp = self.hp - 1
+
+        if self.hp == 0:
+            self.status = Status.Invalid
 
 
-class Enemy:
+
+class Enemies:
 
     def __init__(self):
 
-        # ★TODO 記述を簡潔にする
-        self.enemy1 = [[(12 + 12 * i), 15, 9, 4, random.randint(10,15)] for i in range(4)]
-        self.enemy2 = [[(18 + 12 * i), 23, 9, 4, random.randint(10,15)] for i in range(4)]
-        self.enemy3 = [[(12 + 12 * i), 31, 9, 4, random.randint(10,15)] for i in range(4)]
-        self.enemy4 = [[(18 + 12 * i), 39, 9, 4, random.randint(10,15)] for i in range(4)]
-        self.enemy = self.enemy1 + self.enemy2 + self.enemy3 + self.enemy4 + self.enemy5
+        self.raw1 = [Enemy(5 + (ENEMY_WIDTH + 3) * i, 5, 3) for i in range(4)]
+        self.raw2 = [Enemy(5 + (ENEMY_WIDTH + 3) * i, 5 + ENEMY_HEIGHT + 3, 2) for i in range(4)]
+        self.raw3 = [Enemy(5 + (ENEMY_WIDTH + 3) * i,  5 + (ENEMY_HEIGHT + 3) * 2 , 1) for i in range(4)]
+
+        self.enemy_group = raw1 + raw2 + raw3
 
     def draw(self):
-        [pyxel.blt(block[0])]
+        [pyxel.blt(enemy.x, enemy_y, ) for enemy in self.enemy_group]
         [pyxel.rect(block[0], block[1], block[0] + block[2], block[1] + block[3], block[4]) for block in self.blocks]
 
 
