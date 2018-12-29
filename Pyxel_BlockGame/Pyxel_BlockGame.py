@@ -82,7 +82,7 @@ class Fighter:
 
     def move_right(self):
         # 右の壁にぶつかってない場合は移動
-        if self.x + FIGHTER_WIDTH < WINDOW_WIDTH:
+        if self.x + FIGHTER_WIDTH + 1 < WINDOW_WIDTH:
             self.x = self.x + 1
 
     def move_left(self):
@@ -100,10 +100,16 @@ class Enemy:
 
         if level == Level.Weak:
             self.hp = 1
+            self.picture_position_x = ENEMY_DATA1_POSITION[0]
+            self.picture_position_y = ENEMY_DATA1_POSITION[1]
         if level == Level.Normal:
             self.hp = 2
+            self.picture_position_x = ENEMY_DATA2_POSITION[0]
+            self.picture_position_y = ENEMY_DATA2_POSITION[1]
         if level == Level.Strong:
             self.hp = 3
+            self.picture_position_x = ENEMY_DATA3_POSITION[0]
+            self.picture_position_y = ENEMY_DATA3_POSITION[1]
 
     def hit(self):
         self.hp = self.hp - 1
@@ -127,17 +133,14 @@ class EnemyList:
 
     def __init__(self):
 
-        self.raw1 = [Enemy(5 + (ENEMY_WIDTH + 3) * i, 5, 3) for i in range(4)]
-        self.raw2 = [Enemy(5 + (ENEMY_WIDTH + 3) * i, 5 + ENEMY_HEIGHT + 3, 2) for i in range(4)]
-        self.raw3 = [Enemy(5 + (ENEMY_WIDTH + 3) * i,  5 + (ENEMY_HEIGHT + 3) * 2 , 1) for i in range(4)]
+        self.raw1 = [Enemy(10 + (ENEMY_WIDTH + 3) * i, 7, 3) for i in range(10)]
+        self.raw2 = [Enemy(10 + (ENEMY_WIDTH + 3) * i, 7 + ENEMY_HEIGHT + 7, 2) for i in range(10)]
+        self.raw3 = [Enemy(10 + (ENEMY_WIDTH + 3) * i,  7 + (ENEMY_HEIGHT + 7) * 2 , 1) for i in range(10)]
 
         self.enemy_group = self.raw1 + self.raw2 + self.raw3
 
     def draw(self):
-        b = 1
-        
-        #[pyxel.blt(enemy.x, enemy_y, ) for enemy in self.enemy_group]
-        #[pyxel.rect(block[0], block[1], block[0] + block[2], block[1] + block[3], block[4]) for block in self.blocks]
+        [pyxel.blt(enemy.x, enemy.y, 0, enemy.picture_position_x, enemy.picture_position_y, ENEMY_WIDTH, ENEMY_HEIGHT, 13) for enemy in self.enemy_group]
 
     def update(self):
         a = 1
@@ -185,9 +188,7 @@ class App:
         self.enemy_list.update()
 
         if len(self.shot_list) > 0:
-            for shot in self.shot_list:
-                shot.update()
-            #map(lambda shot: shot.update(), self.shot_list)
+            [shot.update() for shot in self.shot_list]
 
 
 
@@ -198,9 +199,7 @@ class App:
         self.enemy_list.draw()
 
         if len(self.shot_list) > 0:
-            for shot in self.shot_list:
-                shot.draw()
-            #map(lambda shot: shot.draw(), self.shot_list)
+            [shot.draw() for shot in self.shot_list]
 
         if self.fighter.status == Status.Invalid:
             pyxel.text(WINDOW_WIDTH / 2 + FIGHTER_WIDTH / 2, WINDOW_HEIGHT / 3 * 2, "You Failed", 5)
