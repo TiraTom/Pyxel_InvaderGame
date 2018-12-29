@@ -8,13 +8,13 @@ from enum import IntEnum, auto
 WINDOW_HEIGHT = 160
 WINDOW_WIDTH = 120
 FIGHTER_Y = 145
-FIGHTER_WIDTH = 6
-FIGHTER_HEIGHT = 7
+FIGHTER_WIDTH = 7
+FIGHTER_HEIGHT = 8
 FIGHTER_DATA_POSITION = (0, 0)
 ENEMY_HEIGHT = 6
-ENEMY_WIDTH = 6
+ENEMY_WIDTH = 7
 ENEMY_DATA1_POSITION = (8, 0)
-ENEMY_DATA2_POSITION = (0, 8)
+ENEMY_DATA2_POSITION = (0, 9)
 ENEMY_DATA3_POSITION = (9, 9)
 SHOT_POSITION = (16, 0)
 SHOT_HEIGHT = 7
@@ -33,22 +33,22 @@ class Shot():
 
     def __init__(self, position_x):
         self.x = position_x
+        self.y = 0
+        self.color = 0
         self.status = Status.Valid
-        self.color
 
     def draw(self):
-        pyxel.pix(self.x, self.y, self.color)
+        if self.status == Status.Valid:
+            pyxel.pix(self.x, self.y, self.color)
 
     def update(self):
         if self.y == 0 or self.y == WINDOW_HEIGHT: 
             self.status = Status.Invalid
 
-        if self.alive:
-            self.draw()
 
 class FighterShot(Shot):
     def __init__(self, position_x):
-        super().__init__(position_x)
+        super().__init__(position_x + FIGHTER_WIDTH / 2)
         self.y = FIGHTER_Y
         self.color = 8
 
@@ -69,29 +69,16 @@ class EnemyShot(Shot):
         super().update()
 
 
-class ShotList():
-    def __init__(self):
-        a = True
-
-    def update(self):
-        b = True
-
-    def draw(self):
-        c = True
-
-
-
-
 
 class Fighter:
     def __init__(self):
-        self.x = WINDOW_WIDTH / 2 + FIGHTER_WIDTH / 2
+        self.x = WINDOW_WIDTH / 2 - FIGHTER_WIDTH / 2
         self.y = FIGHTER_Y
         self.shot_x = self.x + FIGHTER_WIDTH / 2
         self.status = Status.Valid
 
     def draw(self):
-        pyxel.blt(self.x, self.y, 1, 0, 0, FIGHTER_WIDTH, FIGHTER_HEIGHT, 13)
+        pyxel.blt(self.x, self.y, 0, 0, 0, FIGHTER_WIDTH, FIGHTER_HEIGHT, 13)
 
     def move_right(self):
         # 右の壁にぶつかってない場合は移動
@@ -103,11 +90,6 @@ class Fighter:
         if 0 < self.x:
             self.x = self.x - 1
 
-    def shot(self, x):
-        shot = Shot(self.x)
-        while(shot.alive):
-            shot.update()
-
 
 
 class Enemy:
@@ -117,13 +99,10 @@ class Enemy:
         self.status = Status.Valid
 
         if level == Level.Weak:
-            self.color = 9
             self.hp = 1
         if level == Level.Normal:
-            self.color = 11
             self.hp = 2
         if level == Level.Strong:
-            self.color = 14
             self.hp = 3
 
     def hit(self):
@@ -156,6 +135,7 @@ class EnemyList:
 
     def draw(self):
         b = 1
+        
         #[pyxel.blt(enemy.x, enemy_y, ) for enemy in self.enemy_group]
         #[pyxel.rect(block[0], block[1], block[0] + block[2], block[1] + block[3], block[4]) for block in self.blocks]
 
@@ -171,9 +151,11 @@ class App:
 
         self.fighter = Fighter()
         self.enemy_list = EnemyList()
-        self.shot_list = ShotList()
+        self.shot_list = []
 
         pyxel.run(self.update, self.draw)
+
+        
 
 
     def enemy_hit_check(self, fighter, senemy_list, shot_list):
@@ -187,7 +169,7 @@ class App:
 
     def update(self):
         if pyxel.btnp(pyxel.KEY_SPACE):
-            self.shot_list.append(Shot(self.fighter.x))
+            self.shot_list.append(FighterShot(self.fighter.x))
 
         if pyxel.btnp(pyxel.KEY_Q):
             pyxel.quit()
@@ -201,7 +183,11 @@ class App:
         self.enemy_hit_check(self.fighter, self.enemy_list, self.shot_list)
 
         self.enemy_list.update()
-        self.shot_list.update()
+
+        if len(self.shot_list) > 0:
+            for shot in self.shot_list:
+                shot.update()
+            #map(lambda shot: shot.update(), self.shot_list)
 
 
 
@@ -210,9 +196,13 @@ class App:
 
         self.fighter.draw()
         self.enemy_list.draw()
-        self.shot_list.draw()
 
-        if self.fighter.status == False:
+        if len(self.shot_list) > 0:
+            for shot in self.shot_list:
+                shot.draw()
+            #map(lambda shot: shot.draw(), self.shot_list)
+
+        if self.fighter.status == Status.Invalid:
             pyxel.text(WINDOW_WIDTH / 2 + FIGHTER_WIDTH / 2, WINDOW_HEIGHT / 3 * 2, "You Failed", 5)
 
             #if ord(getch()) == 13:

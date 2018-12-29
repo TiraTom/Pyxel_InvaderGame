@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<ProfilingTarget xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <ProjectTarget>
+    <TargetProject>a8ecc693-4218-42f5-b56f-d7e5ab0b1517</TargetProject>
+    <FriendlyName>BlockGame</FriendlyName>
+  </ProjectTarget>
+  <Reports>
+    <Report>
+      <Filename>C:\Users\masao\AppData\Local\Temp\BlockGame_20181228.vsp</Filename>
+    </Report>
+  </Reports>
+</ProfilingTarget>
