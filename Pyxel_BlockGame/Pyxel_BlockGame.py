@@ -23,6 +23,7 @@ SHOT_HEIGHT = 7
 SHOT_WIDTH = 7
 WEAPON_NUMBER = 5
 FIGHTER_SHOT_SPEED = 2
+EXPLOISION_DATA_POSITION = (16, 0)
 
 class Status(IntEnum):
     Valid = auto()
@@ -50,7 +51,7 @@ class FighterShot(Shot):
     def __init__(self, position_x):
         super().__init__(position_x + FIGHTER_WIDTH / 2)
         self.y = FIGHTER_Y
-        self.color = 8
+        self.color = 10
         self.speed = FIGHTER_SHOT_SPEED
 
     def update(self):
@@ -101,6 +102,9 @@ class Fighter:
         if 0 < self.x:
             self.x = self.x - 1
 
+    def explosion_draw(self):
+        pyxel.blt(self.x, self.y, 0, EXPLOISION_DATA_POSITION[0], EXPLOISION_DATA_POSITION[1] , FIGHTER_WIDTH, FIGHTER_HEIGHT, 13)
+
 
 
 class Enemy:
@@ -121,14 +125,14 @@ class Enemy:
             self.picture_position_y = ENEMY_DATA2_POSITION[1]
             self.score = 10
             self.level = Level.Normal.value
-            self.shot_speed = 3
+            self.shot_speed = 2
         if level == Level.Strong:
             self.hp = 3
             self.picture_position_x = ENEMY_DATA3_POSITION[0]
             self.picture_position_y = ENEMY_DATA3_POSITION[1]
             self.score = 15
             self.level = Level.Strong.value
-            self.shot_speed = 5
+            self.shot_speed = 4
 
     def update(self):
         if pyxel.frame_count % 120 == 15:
@@ -140,6 +144,11 @@ class Enemy:
         elif pyxel.frame_count % 120 == 105:
             self.x = self.x + 5
 
+    def draw(self):
+        pyxel.blt(self.x, self.y, 0, self.picture_position_x, self.picture_position_y, ENEMY_WIDTH, ENEMY_HEIGHT, 13)
+
+    def explosion_draw(self):
+        pyxel.blt(self.x, self.y, 0, EXPLOISION_DATA_POSITION[0], EXPLOISION_DATA_POSITION[1] , ENEMY_WIDTH, ENEMY_HEIGHT, 13)
 
 
 
@@ -154,7 +163,7 @@ class EnemyList:
         self.enemy_group = self.raw1 + self.raw2 + self.raw3
 
     def draw(self):
-        [pyxel.blt(enemy.x, enemy.y, 0, enemy.picture_position_x, enemy.picture_position_y, ENEMY_WIDTH, ENEMY_HEIGHT, 13) for enemy in self.enemy_group]
+        [enemy.draw() for enemy in self.enemy_group]
 
     def update(self):
         if pyxel.frame_count % 1000 == 999:
@@ -177,6 +186,8 @@ class App:
         self.enemy_list = EnemyList()
         self.shot_list = []
         self.score = 0
+        self.explosion_list = []
+        self.finish_frame_count = 0
 
         pyxel.run(self.update, self.draw)
         
@@ -200,17 +211,35 @@ class App:
             return False
 
     def did_enemy_hit_fighter(self, fighter, enemy):
-        if (fighter.x <= enemy.x and enemy.x <= fighter.x + FIGHTER_WIDTH) \
-        or (fighter.x <= enemy.x + ENEMY_WIDTH and enemy.x + ENEMY_WIDTH <= fighter.x + FIGHTER_WIDTH) \
-        and enemy.y <= fighter.y \
-        and fighter.y + FIGHTER_HEIGHT <= enemy.y:
+        if ((fighter.x <= enemy.x and enemy.x <= fighter.x + FIGHTER_WIDTH) \
+        or (fighter.x <= enemy.x + ENEMY_WIDTH and enemy.x + ENEMY_WIDTH <= fighter.x + FIGHTER_WIDTH)) \
+        and fighter.y <= enemy.y + ENEMY_HEIGHT \
+        and enemy.y + ENEMY_HEIGHT <= fighter.y + FIGHTER_HEIGHT:
             return True
         else:
             return False
 
+    def shot_hit_check(self, shot_list):
+        shot_same_x = [shot for shot in shot_list if shot_list.count(shot.x) > 1]
+        shot_hit = [shot for shot in shot_same_x if shot_list.count(shot.y) > 1]
+        for shot in shot_same_x:
+            if shot in shot_hit:
+                continue
+
+            if type(shot) is EnemyShot:
+                shot_same_x_1 = [shot1 for shot1 in shot_same_x if (shot_list.count(shot.y + 1) > 1 and type(shot1) is FighterShot)]            
+                if len(shot_same_x_1) > 0:
+                    shot_hit = shot_hit.append(shot)
+
+        for shot in shot_list:
+            if shot in shot_hit:
+                shot.status =Status.Invalid
 
 
-    def enemy_hit_check(self, fighter, enemy_list, shot_list):
+    def hit_check(self, fighter, enemy_list, shot_list):
+        # 弾同士の衝突処理
+        self.shot_hit_check(shot_list)
+
         for shot in shot_list:
             if shot.status == Status.Invalid:
                 continue
@@ -232,7 +261,7 @@ class App:
         # 戦闘機と敵の追突チェック・敵の侵入チェック
         for enemy in enemy_list.enemy_group:
             if self.did_enemy_hit_fighter(fighter, enemy) \
-            or enemy.y == WINDOW_HEIGHT:
+            or WINDOW_HEIGHT <= enemy.y + ENEMY_HEIGHT:
                 fighter.status = Status.Invalid
 
 
@@ -253,17 +282,22 @@ class App:
         enemy_atack_y = sorted(enemy_atack_y_candidate, key = lambda enemy: enemy.y, reverse = True)[0].y
         enemy_atack_list = [enemy for enemy in enemy_list.enemy_group if (abs(enemy.x - fighter.x) == enemy_atack_distance and enemy.y == enemy_atack_y)]
 
-        # 攻撃処理
+        # 敵の攻撃処理
         [self.shot_list.append(EnemyShot(enemy_atack.x + ENEMY_WIDTH / 2, enemy_atack.y + ENEMY_HEIGHT, enemy_atack.shot_speed)) for enemy_atack in enemy_atack_list]
 
 
     def update(self):
+        if self.fighter.status == Status.Invalid or self.finish_frame_count != 0:
+            if pyxel.btnp(pyxel.KEY_Q):
+                pyxel.quit()
+
+            return
+
+        self.explosion_list.clear()
+
         if pyxel.btnp(pyxel.KEY_SPACE):
             if len(self.shot_list) <= WEAPON_NUMBER :
                 self.shot_list.append(FighterShot(self.fighter.x))
-
-        if pyxel.btnp(pyxel.KEY_Q):
-            pyxel.quit()
 
         if pyxel.btn(pyxel.KEY_LEFT):
             self.fighter.move_left()
@@ -271,12 +305,23 @@ class App:
         if pyxel.btn(pyxel.KEY_RIGHT):
             self.fighter.move_right()
 
+        # 敵の攻撃確立の設定
+        if len(self.enemy_list.enemy_group) > 10:
+            atack_yes = 0.075
+            atack_no = 1 - atack_yes
+        elif len(self.enemy_list.enemy_group) >5:
+            atack_yes = 0.1
+            atack_no = 1 - atack_yes
+        else:
+            atack_yes = 0.15
+            atack_no = 1 - atack_yes
+
         # 敵の攻撃処理
-        if pyxel.frame_count % 134 == 111:
+        if np.random.choice([True, False], p=[atack_yes, atack_no]) == True:
             self.enemy_atack(self.fighter, self.enemy_list)
 
         # 敵・弾等の衝突判定
-        self.enemy_hit_check(self.fighter, self.enemy_list, self.shot_list)
+        self.hit_check(self.fighter, self.enemy_list, self.shot_list)
 
         # 敵の更新処理
         self.enemy_list.update()
@@ -288,6 +333,8 @@ class App:
         # 無効になった敵を削除する処理
         for enemy in self.enemy_list.enemy_group:
             if enemy.hp == 0 :
+                self.explosion_list.append(enemy)
+
                 self.enemy_list.enemy_group.remove(enemy)
 
         # 無効になった弾を削除する処理
@@ -310,14 +357,16 @@ class App:
         if len(self.shot_list) > 0:
             [shot.draw() for shot in self.shot_list]
 
+        [enemy.explosion_draw() for enemy in self.explosion_list]
+
         if len(self.enemy_list.enemy_group) == 0:
             pyxel.text(WINDOW_WIDTH / 2 - 20, WINDOW_HEIGHT / 2 - 10 , 'Clear!!!', 6)
 
         if self.fighter.status == Status.Invalid:
-            pyxel.text(WINDOW_WIDTH / 2 + FIGHTER_WIDTH / 2, WINDOW_HEIGHT / 3 * 2, "You Failed", 5)
-
-            #if ord(getch()) == 13:
-            #    pyxel.quit()
+            self.fighter.explosion_draw()
+            pyxel.text(WINDOW_WIDTH / 3 + FIGHTER_WIDTH / 2, WINDOW_HEIGHT / 3 * 2, "You Failed", 5)
+            pyxel.text(WINDOW_WIDTH / 3 + FIGHTER_WIDTH / 2, WINDOW_HEIGHT / 3 * 2 + 10, "Quit Game: Press Q Key", 5)
+            self.finish_frame_count = pyxel.frame_count
 
 
 print(" Start New Game : Press Enter Key")
