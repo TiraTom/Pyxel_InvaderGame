@@ -1,3 +1,3 @@
-# Pyxel_BlockGame
+# Pyxel_InvederGame
 
 Pyxelでブロック崩しゲームを作ります。⇒インベーダーゲームにします。
