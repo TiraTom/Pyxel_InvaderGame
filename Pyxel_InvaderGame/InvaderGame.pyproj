@@ -5,12 +5,12 @@
     <ProjectGuid>a8ecc693-4218-42f5-b56f-d7e5ab0b1517</ProjectGuid>
     <ProjectHome>
     </ProjectHome>
-    <StartupFile>Pyxel_BlockGame.py</StartupFile>
+    <StartupFile>Pyxel_InvaderGame.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
-    <Name>BlockGame</Name>
+    <Name>InvaderGame</Name>
     <RootNamespace>PythonApplication1</RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -22,7 +22,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Pyxel_BlockGame.py" />
+    <Compile Include="Pyxel_InvaderGame.py" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
