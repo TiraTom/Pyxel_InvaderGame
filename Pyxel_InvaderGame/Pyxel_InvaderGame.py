@@ -21,7 +21,7 @@ ENEMY_DATA3_POSITION = (9, 9)
 SHOT_POSITION = (16, 0)
 SHOT_HEIGHT = 7
 SHOT_WIDTH = 7
-WEAPON_NUMBER = 5
+WEAPON_NUMBER = 6
 FIGHTER_SHOT_SPEED = 2
 EXPLOISION_DATA_POSITION = (16, 0)
 
@@ -166,14 +166,11 @@ class EnemyList:
         [enemy.draw() for enemy in self.enemy_group]
 
     def update(self):
-        if pyxel.frame_count % 1000 == 999:
+        if pyxel.frame_count % 800 == 799:
             for enemy in self.enemy_group:
                 enemy.y = enemy.y + ENEMY_HEIGHT
 
         [enemy.update() for enemy in self.enemy_group]
-
-        if pyxel.frame_count % 200 == 199:
-            a = 1
 
 
 class App:
