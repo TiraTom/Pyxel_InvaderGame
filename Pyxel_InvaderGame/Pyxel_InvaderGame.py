@@ -1,3 +1,7 @@
+# Pyxel
+# Copyright (c) 2018 Takashi Kitao 
+# Licensed under MIT (https://github.com/kitao/pyxel/blob/master/LICENSE) 
+ 
 import os
 import pyxel
 import random
@@ -21,7 +25,7 @@ ENEMY_DATA3_POSITION = (9, 9)
 SHOT_POSITION = (16, 0)
 SHOT_HEIGHT = 7
 SHOT_WIDTH = 7
-WEAPON_NUMBER = 6
+WEAPON_NUMBER = 7
 FIGHTER_SHOT_SPEED = 2
 EXPLOISION_DATA_POSITION = (16, 0)
 
@@ -69,7 +73,7 @@ class FighterShot(Shot):
 class EnemyShot(Shot):
     def __init__(self, position_x, position_y, speed):
         super().__init__(position_x)
-        self.y =  position_y
+        self.y = position_y
         self.color = 10
         self.speed = speed
 
@@ -176,8 +180,8 @@ class EnemyList:
 class App:
     def __init__(self):
         pyxel.init(WINDOW_WIDTH, WINDOW_HEIGHT, caption="InvaderGame")
-
-        pyxel.load(f'{os.getcwd()}/resource_file.pyxel')
+         
+        pyxel.load(f'{os.path.dirname(__file__)}/resource_file.pyxel')
 
         self.fighter = Fighter()
         self.enemy_list = EnemyList()
@@ -190,28 +194,19 @@ class App:
         
 
     def did_enemy_shot_fighter(self, shot, fighter):
-        if fighter.x <= shot.x \
-        and shot.x <= fighter.x + FIGHTER_WIDTH \
-        and fighter.y <= shot.y \
-        and shot.y <= fighter.y + FIGHTER_HEIGHT:
+        if fighter.x <= shot.x and shot.x <= fighter.x + FIGHTER_WIDTH and fighter.y <= shot.y and shot.y <= fighter.y + FIGHTER_HEIGHT:
             return True
         else:
             return False
 
     def did_fighter_shot_enemy(self, shot, enemy):
-        if enemy.x <= shot.x \
-        and shot.x <= enemy.x + ENEMY_WIDTH \
-        and enemy.y <= shot.y \
-        and shot.y <= enemy.y + ENEMY_HEIGHT:
+        if enemy.x <= shot.x and shot.x <= enemy.x + ENEMY_WIDTH and enemy.y <= shot.y and shot.y <= enemy.y + ENEMY_HEIGHT:
             return True
         else:
             return False
 
     def did_enemy_hit_fighter(self, fighter, enemy):
-        if ((fighter.x <= enemy.x and enemy.x <= fighter.x + FIGHTER_WIDTH) \
-        or (fighter.x <= enemy.x + ENEMY_WIDTH and enemy.x + ENEMY_WIDTH <= fighter.x + FIGHTER_WIDTH)) \
-        and fighter.y <= enemy.y + ENEMY_HEIGHT \
-        and enemy.y + ENEMY_HEIGHT <= fighter.y + FIGHTER_HEIGHT:
+        if ((fighter.x <= enemy.x and enemy.x <= fighter.x + FIGHTER_WIDTH) or (fighter.x <= enemy.x + ENEMY_WIDTH and enemy.x + ENEMY_WIDTH <= fighter.x + FIGHTER_WIDTH)) and fighter.y <= enemy.y + ENEMY_HEIGHT and enemy.y + ENEMY_HEIGHT <= fighter.y + FIGHTER_HEIGHT:
             return True
         else:
             return False
@@ -230,7 +225,7 @@ class App:
 
         for shot in shot_list:
             if shot in shot_hit:
-                shot.status =Status.Invalid
+                shot.status = Status.Invalid
 
 
     def hit_check(self, fighter, enemy_list, shot_list):
@@ -257,8 +252,7 @@ class App:
 
         # 戦闘機と敵の追突チェック・敵の侵入チェック
         for enemy in enemy_list.enemy_group:
-            if self.did_enemy_hit_fighter(fighter, enemy) \
-            or WINDOW_HEIGHT <= enemy.y + ENEMY_HEIGHT:
+            if self.did_enemy_hit_fighter(fighter, enemy) or WINDOW_HEIGHT <= enemy.y + ENEMY_HEIGHT:
                 fighter.status = Status.Invalid
 
 
@@ -272,8 +266,10 @@ class App:
         elif len(distance_list) == 2:
             enemy_atack_distance_candidate = distance_list[0:2]
             enemy_atack_distance = np.random.choice(enemy_atack_distance_candidate, p = [0.6, 0.4])
-        else:
+        elif len(distance_list) == 1:
             enemy_atack_distance = distance_list[0:1]
+        else:
+            return
 
         enemy_atack_y_candidate = [enemy for enemy in enemy_list.enemy_group if abs(enemy.x - fighter.x) == enemy_atack_distance]
         enemy_atack_y = sorted(enemy_atack_y_candidate, key = lambda enemy: enemy.y, reverse = True)[0].y
@@ -306,11 +302,11 @@ class App:
         if len(self.enemy_list.enemy_group) > 10:
             atack_yes = 0.075
             atack_no = 1 - atack_yes
-        elif len(self.enemy_list.enemy_group) >5:
-            atack_yes = 0.1
+        elif len(self.enemy_list.enemy_group) > 5:
+            atack_yes = 0.09
             atack_no = 1 - atack_yes
         else:
-            atack_yes = 0.15
+            atack_yes = 0.12
             atack_no = 1 - atack_yes
 
         # 敵の攻撃処理
